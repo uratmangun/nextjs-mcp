@@ -12,6 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@farcaster/jfs": "^0.0.6",
     "dotenv": "^17.2.2",
     "jimp": "^1.6.0",
     "next": "15.3.5",
