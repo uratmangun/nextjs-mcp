@@ -19,28 +19,25 @@ jobs:
       - name: "📥 Checkout code"
         uses: actions/checkout@v4
 
-      - name: "🛠️ Setup pnpm"
-        uses: pnpm/action-setup@v2
+      - name: "🛠️ Setup bun"
+        uses: oven-sh/setup-bun@v1
         with:
-          version: 8
+          bun-version: latest
 
       - name: "🧰 Setup Node.js"
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: "📦 Install dependencies"
         run: |
-          # Install dependencies while skipping optional native packages
-          pnpm install --no-frozen-lockfile --ignore-scripts --no-optional
-          # Reinstall only the critical packages that need scripts
-          pnpm rebuild next
+          # Install dependencies with bun
+          bun install --no-save
         env:
           PYTHON: python3
 
       - name: "🛠️ Install Vercel CLI"
-        run: pnpm add -g vercel@latest
+        run: bun add -g vercel@latest
 
       - name: "🧹 Check and delete existing matching Vercel projects"
         id: cleanup-projects
@@ -134,7 +131,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{
               \"name\": \"$PROJECT_NAME\",
-              \"framework\": \"nextjs\"
+              \"framework\": null
             }")
           
           PROJECT_ID=$(echo "$CREATE_RESPONSE" | jq -r '.id')
@@ -144,6 +141,16 @@ jobs:
             echo "Project ID: $PROJECT_ID"
             echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
             echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+            
+            # Build the XMCP application
+            echo "🔨 Building XMCP application..."
+            if [ -f "package.json" ] && grep -q '"build"' package.json; then
+              echo "Build script found, running build"
+              bun run build
+            else
+              echo "No build script found in package.json"
+              exit 1
+            fi
             
             # Link the project to current directory
             echo "🔗 Linking Vercel project..."
@@ -155,12 +162,10 @@ jobs:
           fi
 
       - name: "🏗️ Build application"
-        run: pnpm run build
+        run: bun run build
         env:
           NODE_ENV: production
-          NEXT_TELEMETRY_DISABLED: 1
           NODE_OPTIONS: "--max-old-space-size=4096"
-          NEXT_PUBLIC_APP_DOMAIN: https://${{ steps.deploy-temp.outputs.production_domain }}
           # Pass all Farcaster and API configuration for build-time generation
           FARCASTER_FID: ${{ secrets.FARCASTER_FID }}
           FARCASTER_CUSTODY_ADDRESS: ${{ secrets.FARCASTER_CUSTODY_ADDRESS }}
@@ -183,7 +188,7 @@ jobs:
           FARCASTER_FID: ${{ secrets.FARCASTER_FID }}
           FARCASTER_CUSTODY_ADDRESS: ${{ secrets.FARCASTER_CUSTODY_ADDRESS }}
           FARCASTER_CUSTODY_PRIVATE_KEY: ${{ secrets.FARCASTER_CUSTODY_PRIVATE_KEY }}
-          NEXT_PUBLIC_APP_DOMAIN: https://${{ steps.generate-vercel-project.outputs.project_name }}.vercel.app
+          APP_DOMAIN: https://${{ steps.generate-vercel-project.outputs.project_name }}.vercel.app
           # App Metadata
           FARCASTER_APP_NAME: ${{ secrets.FARCASTER_APP_NAME }}
           FARCASTER_APP_BUTTON_TITLE: ${{ secrets.FARCASTER_APP_BUTTON_TITLE }}
@@ -267,7 +272,7 @@ jobs:
           FARCASTER_FID: ${{ secrets.FARCASTER_FID }}
           FARCASTER_CUSTODY_ADDRESS: ${{ secrets.FARCASTER_CUSTODY_ADDRESS }}
           FARCASTER_CUSTODY_PRIVATE_KEY: ${{ secrets.FARCASTER_CUSTODY_PRIVATE_KEY }}
-          NEXT_PUBLIC_APP_DOMAIN: https://${{ steps.generate-vercel-project.outputs.project_name }}.vercel.app
+          APP_DOMAIN: https://${{ steps.generate-vercel-project.outputs.project_name }}.vercel.app
           # App Metadata
           FARCASTER_APP_NAME: ${{ secrets.FARCASTER_APP_NAME }}
           FARCASTER_APP_BUTTON_TITLE: ${{ secrets.FARCASTER_APP_BUTTON_TITLE }}
