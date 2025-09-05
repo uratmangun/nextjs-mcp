@@ -14,7 +14,9 @@
   "dependencies": {
     "@farcaster/jfs": "^0.0.6",
     "dotenv": "^17.2.2",
+    "ethers": "^6.15.0",
     "jimp": "^1.6.0",
+    "mime": "^4.0.7",
     "next": "15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
