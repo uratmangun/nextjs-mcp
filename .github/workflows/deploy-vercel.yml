@@ -401,11 +401,12 @@ jobs:
               console.error('Failed to update repository homepage URL:', error);
               // Don't fail the workflow if homepage update fails
             }
-            - name: "📢 Announce deployment and favorite frame"
-            if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-            env:
-              FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
-            run: |
+
+      - name: "📢 Announce deployment and favorite frame"
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        env:
+          FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
+        run: |
               PRODUCTION_URL="${{ steps.deploy-production.outputs.production_url }}"
               # Extract domain from full URL for scripts that expect domain only
               DOMAIN=$(echo "$PRODUCTION_URL" | sed 's|https://||' | sed 's|http://||')
