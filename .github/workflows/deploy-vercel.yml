@@ -83,8 +83,7 @@ jobs:
                 # Check if deletion was successful (Vercel API returns empty response on success)
                 if [ -z "$DELETE_RESPONSE" ] || [ "$DELETE_RESPONSE" = "{}" ]; then
                   echo "✓ Successfully deleted Vercel project: $PROJECT"
-                  echo "💔 Unfavoriting frame for $PROJECT.vercel.app"
-                  node scripts/unfavorite-frame.js "$PROJECT.vercel.app"
+               
                 else
                   echo "⚠ Warning: Failed to delete Vercel project: $PROJECT"
                   echo "Response: $DELETE_RESPONSE"
