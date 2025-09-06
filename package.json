@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@farcaster/jfs": "^0.0.6",
+    "@farcaster/miniapp-sdk": "^0.1.10",
     "@google/genai": "^1.17.0",
     "dotenv": "^17.2.2",
     "ethers": "^6.15.0",
