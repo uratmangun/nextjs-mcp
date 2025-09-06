@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import "dotenv/config";
+require('dotenv/config');
 
 async function postToFarcaster() {
   const url = 'https://client.farcaster.xyz/v2/casts';

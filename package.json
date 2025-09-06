@@ -1,6 +1,5 @@
 {
   "name": "Next.js with Adapter",
-  "type": "module",
   "description": "Integrate xmcp into a Next.js application using the adapter",
   "keywords": [
     "nextjs",

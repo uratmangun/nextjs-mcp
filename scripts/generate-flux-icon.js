@@ -1,22 +1,20 @@
 #!/usr/bin/env node
 
-import "dotenv/config";
-import Together from "together-ai";
-import { Jimp } from "jimp";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import {
+require('dotenv/config');
+const Together = require('together-ai');
+const { Jimp } = require('jimp');
+const { join } = require('path');
+const {
   readFileSync,
   writeFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
   unlinkSync,
-} from "fs";
+} = require('fs');
 
 // Get script directory for relative imports
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Note: __filename and __dirname are available in CommonJS by default
 
 /**
  * Flux Icon Generation Script for Farcaster Mini Apps
@@ -443,11 +441,11 @@ async function main() {
 }
 
 // Run the script when executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   main().catch(console.error);
 }
 
-export {
+module.exports = {
   generateIcon,
   generateImage,
   generateIconPrompt,

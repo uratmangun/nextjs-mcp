@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import "dotenv/config";
+require('dotenv/config');
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 5000; // 5 seconds

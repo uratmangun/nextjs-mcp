@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import "dotenv/config";
-import { writeFileSync, readFileSync } from 'fs';
-import { join } from 'path';
-import { 
+require('dotenv/config');
+const { writeFileSync, readFileSync } = require('fs');
+const { join } = require('path');
+const { 
   encodeHeader, 
   encodePayload, 
   decode
-} from '@farcaster/jfs';
+} = require('@farcaster/jfs');
 
 /**
  * Script to generate Farcaster account association for Mini App manifest
@@ -261,7 +261,7 @@ async function main() {
       console.log(`📋 Using custody address: ${custodyAddress}\n`);
 
       // Use ethers v6 Wallet to sign per EIP-191 (personal_sign)
-      const { Wallet } = await import('ethers');
+      const { Wallet } = require('ethers');
       const wallet = new Wallet(privateKey);
       const walletAddress = wallet.address;
 
@@ -343,8 +343,8 @@ async function main() {
 }
 
 // Run the script when executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   main().catch(console.error);
 }
 
-export { FarcasterAccountAssociationGenerator };
+module.exports = { FarcasterAccountAssociationGenerator };
