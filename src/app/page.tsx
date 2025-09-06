@@ -1,113 +1,99 @@
 'use client';
 
-import Image from "next/image";
+import { useEffect, useState } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk'
-import { useEffect } from 'react';
 
 export default function Home() {
+  const [copied, setCopied] = useState<string | null>(null);
+
   useEffect(() => {
     const initializeSdk = async () => {
       await sdk.actions.ready();
     };
     initializeSdk();
   }, []);
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const copyToClipboard = async (text: string, id: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const commands = [
+    {
+      id: 'create',
+      title: '1. Create a new repository from this template',
+      command: 'gh repo create your-new-repo --template uratmangun/with-nextjs --public --clone',
+      description: 'Creates a new public repository using this as a template and clones it locally'
+    },
+    {
+      id: 'clone',
+      title: '2. Or clone an existing repository created from this template',
+      command: 'gh repo clone username/your-repo-name',
+      description: 'Clones an existing repository to your local machine'
+    },
+    {
+      id: 'make-public',
+      title: '3. Make an existing repository public (if needed)',
+      command: 'gh repo edit --visibility public',
+      description: 'Changes repository visibility to public (run inside the repo directory)'
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 p-8">
+      <div className="max-w-4xl mx-auto">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+            Next.js Template Repository
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-300">
+            Use these GitHub CLI commands to create your own repository from this template
+          </p>
+        </header>
+
+        <div className="space-y-6">
+          {commands.map((cmd) => (
+            <div
+              key={cmd.id}
+              className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700"
+            >
+              <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-3">
+                {cmd.title}
+              </h3>
+              <p className="text-slate-600 dark:text-slate-300 mb-4">
+                {cmd.description}
+              </p>
+              <div className="relative">
+                <pre className="bg-slate-900 dark:bg-slate-950 text-green-400 p-4 rounded-lg overflow-x-auto font-mono text-sm">
+                  <code>{cmd.command}</code>
+                </pre>
+                <button
+                  onClick={() => copyToClipboard(cmd.command, cmd.id)}
+                  className="absolute top-2 right-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded text-xs transition-colors"
+                >
+                  {copied === cmd.id ? '✓ Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="mt-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3">
+            📋 Prerequisites
+          </h3>
+          <ul className="space-y-2 text-blue-700 dark:text-blue-300">
+            <li>• Install GitHub CLI: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">brew install gh</code> or <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">winget install GitHub.cli</code></li>
+            <li>• Authenticate: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">gh auth login</code></li>
+            <li>• Replace <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">your-new-repo</code> and <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">username/your-repo-name</code> with actual names</li>
+          </ul>
+        </div>
+
+        <footer className="text-center mt-12 text-slate-500 dark:text-slate-400">
+          <p>After creating your repository, run <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">pnpm dev</code> to start development!</p>
+        </footer>
+      </div>
     </div>
   );
 }
