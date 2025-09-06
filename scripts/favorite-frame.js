@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
-const { randomUUID } = require('crypto');
+import "dotenv/config";
+import { randomUUID } from 'crypto';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 5000; // 5 seconds

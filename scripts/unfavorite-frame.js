@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
-const { randomUUID } = require('crypto');
+import "dotenv/config";
+import { randomUUID } from 'crypto';
 
 async function unfavoriteFrame() {
   const url = 'https://client.farcaster.xyz/v1/favorite-frames';

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
-const { writeFileSync, readFileSync } = require('fs');
-const { join } = require('path');
-const { 
+import "dotenv/config";
+import { writeFileSync, readFileSync } from 'fs';
+import { join } from 'path';
+import { 
   encodeHeader, 
   encodePayload, 
   decode
-} = require('@farcaster/jfs');
+} from '@farcaster/jfs';
 
 /**
  * Script to generate Farcaster account association for Mini App manifest
