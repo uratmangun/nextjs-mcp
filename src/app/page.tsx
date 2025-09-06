@@ -23,7 +23,7 @@ export default function Home() {
     {
       id: 'create',
       title: '1. Create a new repository from this template',
-      command: 'gh repo create your-new-repo --template uratmangun/with-nextjs --public --clone',
+      command: 'gh repo create your-new-repo --template uratmangun/nextjs-mcp --public --clone',
       description: 'Creates a new public repository using this as a template and clones it locally'
     },
     {
@@ -45,10 +45,10 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4">
-            Next.js Template Repository
+            Next.js MCP Template
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300">
-            Use these GitHub CLI commands to create your own repository from this template
+            Use this to create your next Next.js MCP apps
           </p>
         </header>
 
