@@ -502,7 +502,9 @@ async function generateIcon(prompt, retryCount = 0) {
       if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
         const fileName = generateFilename("icon", "gemini") + `_${fileIndex++}`;
         const inlineData = chunk.candidates[0].content.parts[0].inlineData;
-        const fileExtension = mime.getExtension(inlineData.mimeType || 'image/png') || 'png';
+        // Extract extension from mimeType directly
+        const mimeType = inlineData.mimeType || 'image/png';
+        const fileExtension = mimeType.split('/')[1] || 'png';
         const buffer = Buffer.from(inlineData.data || '', 'base64');
 
         // Resize image to optimal dimensions
