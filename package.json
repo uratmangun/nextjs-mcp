@@ -1,5 +1,6 @@
 {
   "name": "Next.js with Adapter",
+  "type": "module",
   "description": "Integrate xmcp into a Next.js application using the adapter",
   "keywords": [
     "nextjs",
@@ -13,6 +14,7 @@
   },
   "dependencies": {
     "@farcaster/jfs": "^0.0.6",
+    "@google/genai": "^1.17.0",
     "dotenv": "^17.2.2",
     "ethers": "^6.15.0",
     "jimp": "^1.6.0",
