@@ -342,8 +342,9 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+// Run the script when executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 
-module.exports = { FarcasterAccountAssociationGenerator };
+export { FarcasterAccountAssociationGenerator };
