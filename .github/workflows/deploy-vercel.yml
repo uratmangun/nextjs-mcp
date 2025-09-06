@@ -260,7 +260,7 @@ jobs:
             node scripts/generate-farcaster-account-association.js generate
       - name: "🎨 Generate AI icon"
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           BROWSERLESS_API_URL: ${{ secrets.BROWSERLESS_API_URL }}
         run: |
           # Export domain URLs for icon generation
