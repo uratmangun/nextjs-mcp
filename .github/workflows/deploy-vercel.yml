@@ -39,18 +39,17 @@ jobs:
       - name: "🛠️ Install Vercel CLI"
         run: pnpm add -g vercel@latest
 
-      - name: "🧹 Check and delete existing matching Vercel projects"
+      - name: "🔎 Find existing Vercel project"
         id: cleanup-projects
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          FARCASTER_BEARER_TOKEN: ${{ secrets.FARCASTER_BEARER_TOKEN }}
         run: |
           # Get repository name for pattern matching
           REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
           REPO_PATTERN="${REPO_NAME}-"
           
           echo "========================================="
-          echo "Cleaning up existing Vercel projects"
+          echo "Searching for existing Vercel projects"
           echo "Pattern: ${REPO_PATTERN}*"
           echo "========================================="
           
@@ -60,51 +59,51 @@ jobs:
             -H "Authorization: Bearer ${VERCEL_TOKEN}" \
             -H "Content-Type: application/json")
           
-          # Extract project names that match the pattern
-          MATCHING_PROJECTS=$(echo "$PROJECTS" | jq -r ".projects[] | select(.name | startswith(\"${REPO_PATTERN}\")) | .name" || true)
+          # Select the most recently updated project that matches the pattern
+          MATCHING=$(echo "$PROJECTS" | jq -r \
+            ".projects | map(select(.name | startswith(\"${REPO_PATTERN}\"))) | sort_by(.updatedAt // 0) | reverse | .[0]")
           
-          if [ -n "$MATCHING_PROJECTS" ]; then
-            echo "Found matching Vercel projects to delete:"
-            echo "$MATCHING_PROJECTS"
-            echo ""
-            
-            # Delete each matching project with rate limiting
-            while IFS= read -r PROJECT; do
-              if [ -n "$PROJECT" ]; then
-                echo "Deleting Vercel project: $PROJECT"
-                DELETE_RESPONSE=$(curl -s -X DELETE \
-                  "https://api.vercel.com/v9/projects/${PROJECT}" \
-                  -H "Authorization: Bearer ${VERCEL_TOKEN}" \
-                  -H "Content-Type: application/json")
-                
-                # Check if deletion was successful (Vercel API returns empty response on success)
-                if [ -z "$DELETE_RESPONSE" ] || [ "$DELETE_RESPONSE" = "{}" ]; then
-                  echo "✓ Successfully deleted Vercel project: $PROJECT"
-                  echo "💔 Unfavoriting frame for $PROJECT.vercel.app"
-                  node scripts/unfavorite-frame.js "$PROJECT.vercel.app"
-                else
-                  echo "⚠ Warning: Failed to delete Vercel project: $PROJECT"
-                  echo "Response: $DELETE_RESPONSE"
-                fi
-                
-                # Rate limiting - wait 1 second between deletions
-                sleep 1
-              fi
-            done <<< "$MATCHING_PROJECTS"
+          EXISTING_PROJECT_NAME=$(echo "$MATCHING" | jq -r '.name // empty')
+          EXISTING_PROJECT_ID=$(echo "$MATCHING" | jq -r '.id // empty')
+          
+          if [ -n "$EXISTING_PROJECT_NAME" ] && [ -n "$EXISTING_PROJECT_ID" ]; then
+            echo "✅ Found existing Vercel project: $EXISTING_PROJECT_NAME"
+            echo "existing_project_name=$EXISTING_PROJECT_NAME" >> $GITHUB_OUTPUT
+            echo "existing_project_id=$EXISTING_PROJECT_ID" >> $GITHUB_OUTPUT
           else
             echo "No existing Vercel projects found matching pattern: ${REPO_PATTERN}*"
           fi
-          
-          echo ""
-          echo "========================================="
-          echo "Cleanup complete"
-          echo "========================================="
 
       - name: "🆕 Generate Vercel project name and create project"
         id: generate-vercel-project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
+          # If a matching project already exists, reuse it; otherwise create a new project
+          EXISTING_PROJECT_ID="${{ steps.cleanup-projects.outputs.existing_project_id }}"
+          EXISTING_PROJECT_NAME="${{ steps.cleanup-projects.outputs.existing_project_name }}"
+          
+          if [ -n "$EXISTING_PROJECT_ID" ] && [ -n "$EXISTING_PROJECT_NAME" ]; then
+            echo "➡️ Using existing Vercel project: $EXISTING_PROJECT_NAME ($EXISTING_PROJECT_ID)"
+            echo "project_name=$EXISTING_PROJECT_NAME" >> $GITHUB_OUTPUT
+            echo "project_id=$EXISTING_PROJECT_ID" >> $GITHUB_OUTPUT
+            
+            # Build the XMCP application
+            echo "🔨 Building XMCP application..."
+            if [ -f "package.json" ] && grep -q '"build"' package.json; then
+              echo "Build script found, running build"
+              pnpm run build
+            else
+              echo "No build script found in package.json"
+              exit 1
+            fi
+            
+            # Link the project to current directory
+            echo "🔗 Linking Vercel project..."
+            vercel link --token="$VERCEL_TOKEN" --yes --project="$EXISTING_PROJECT_ID"
+            exit 0
+          fi
+          
           # Get repository name
           REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
           
@@ -185,6 +184,9 @@ jobs:
         run: |
           echo "🚢 Deploying temporary build to Vercel for screenshot generation..."
           
+          # Define project to deploy to
+          PROJECT_ID="${{ steps.generate-vercel-project.outputs.project_id }}"
+          
           # Deploy to Vercel and capture the deployment URL from stdout
           echo "🚀 Starting temporary deployment..."
           TEMP_DEPLOYMENT_URL=$(vercel deploy \
@@ -214,7 +216,6 @@ jobs:
           echo "✅ Temporary deployment URL: $TEMP_DEPLOYMENT_URL"
           
           # Get the actual production domain from Vercel API for use in subsequent steps
-          PROJECT_ID="${{ steps.generate-vercel-project.outputs.project_id }}"
           echo "🔍 Fetching production domain for environment variables..."
           DOMAINS_RESPONSE=$(curl -s -X GET \
             "https://api.vercel.com/v9/projects/${PROJECT_ID}/domains?production=true" \
@@ -334,6 +335,7 @@ jobs:
           
           # Deploy to production and capture deployment URL from stdout
           echo "🚀 Starting production deployment..."
+          PROJECT_ID="${{ steps.generate-vercel-project.outputs.project_id }}"
           DEPLOYMENT_URL=$(vercel deploy --prod \
             --token="$VERCEL_TOKEN" \
             --yes \
@@ -355,7 +357,6 @@ jobs:
           fi
           
           # The deployment URL requires authentication, so we get the actual domain via API
-          PROJECT_ID="${{ steps.generate-vercel-project.outputs.project_id }}"
           
           # Get the actual production domain from Vercel API
           echo "🔍 Fetching actual production domain from Vercel API..."
@@ -445,6 +446,7 @@ jobs:
           echo "Deploying to Vercel Preview..."
           
           # Deploy to preview and capture URL from stdout
+          PROJECT_ID="${{ steps.generate-vercel-project.outputs.project_id }}"
           DEPLOYMENT_URL=$(vercel deploy \
             --token="$VERCEL_TOKEN" \
             --yes \
